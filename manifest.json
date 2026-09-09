@@ -1,0 +1,14 @@
+{
+  "name": "Letra Chica",
+  "short_name": "Letra Chica",
+  "description": "Pegá un contrato, factura o resultado médico. Te dice qué dice, qué te jode y qué preguntar.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1B1D22",
+  "theme_color": "#1B1D22",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Letra Chica</title>
+<meta name="theme-color" content="#1B1D22">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>
+  :root{
+    --bg:#1B1D22;
+    --bg-raised:#22252C;
+    --paper:#F1EEE4;
+    --ink:#1B1D22;
+    --muted:#9A968A;
+    --muted-onbg:#6E7280;
+    --danger:#C4342A;
+    --caution:#B8792A;
+    --safe:#2F6B4F;
+    --rule: rgba(241,238,228,0.14);
+    --serif: Georgia, 'Iowan Old Style', 'Source Serif Pro', 'Noto Serif', serif;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--paper);
+    font-family:var(--sans);
+    min-height:100vh;
+    padding-bottom:48px;
+  }
+  .wrap{max-width:640px;margin:0 auto;padding:20px 18px 0;}
+
+  header{display:flex;align-items:baseline;justify-content:space-between;padding:10px 0 18px;}
+  .brand{display:flex;flex-direction:column;}
+  .brand .mark{font-family:var(--serif);font-weight:700;font-size:26px;letter-spacing:-0.01em;}
+  .brand .mark em{color:var(--danger);font-style:normal;text-decoration:underline;text-decoration-color:var(--danger);text-decoration-thickness:2px;text-underline-offset:3px;}
+  .brand .sub{font-size:13px;color:var(--muted);margin-top:2px;}
+  .gear{
+    background:none;border:1px solid var(--rule);color:var(--paper);
+    width:38px;height:38px;border-radius:10px;font-size:16px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+
+  .doc{
+    background:var(--paper);
+    color:var(--ink);
+    border-radius:2px;
+    padding:18px 16px;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.4), 0 12px 24px rgba(0,0,0,0.25);
+    position:relative;
+  }
+  .doc::before{
+    content:"";position:absolute;top:0;left:22px;width:2px;height:100%;background:rgba(196,52,42,0.18);
+  }
+  textarea{
+    width:100%;min-height:190px;resize:vertical;
+    border:none;outline:none;background:transparent;
+    font-family:var(--serif);font-size:16px;line-height:1.55;color:var(--ink);
+    padding-left:14px;
+  }
+  textarea::placeholder{color:#8B8778;}
+
+  .actions{display:flex;gap:10px;margin-top:14px;align-items:center;}
+  .go{
+    flex:1;background:var(--danger);color:var(--paper);border:none;
+    font-family:var(--sans);font-weight:700;font-size:15px;
+    padding:14px 16px;border-radius:10px;cursor:pointer;letter-spacing:0.01em;
+  }
+  .go:disabled{opacity:0.5;}
+  .clear{
+    background:none;border:1px solid var(--rule);color:var(--muted);
+    padding:14px 14px;border-radius:10px;font-size:14px;cursor:pointer;font-family:var(--sans);
+  }
+
+  .hint{font-size:12.5px;color:var(--muted);margin-top:10px;line-height:1.5;}
+  .hint button{background:none;border:none;color:var(--paper);text-decoration:underline;cursor:pointer;font-size:12.5px;padding:0;font-family:var(--sans);}
+
+  section.verdict{margin-top:26px;display:none;}
+  section.verdict.show{display:block;}
+  .verdict h2{
+    font-family:var(--serif);font-size:20px;margin:0 0 14px;
+    border-bottom:1px solid var(--rule);padding-bottom:10px;
+  }
+  .block{margin-bottom:22px;}
+  .block h3{
+    font-size:12.5px;text-transform:none;color:var(--muted);
+    margin:0 0 8px;font-weight:600;
+  }
+  .resumen{font-family:var(--serif);font-size:16.5px;line-height:1.6;color:var(--paper);}
+
+  .riesgo{
+    display:flex;gap:10px;padding:12px 0;border-top:1px solid var(--rule);
+  }
+  .riesgo:first-child{border-top:none;}
+  .riesgo .dot{width:9px;height:9px;border-radius:50%;margin-top:6px;flex-shrink:0;}
+  .riesgo.alta .dot{background:var(--danger);}
+  .riesgo.media .dot{background:var(--caution);}
+  .riesgo.baja .dot{background:var(--safe);}
+  .riesgo p{margin:0;font-size:15px;line-height:1.5;}
+  .riesgo .tag{display:block;font-size:11px;color:var(--muted);margin-top:3px;}
+
+  .accion{display:flex;gap:10px;padding:9px 0;font-size:15px;line-height:1.45;}
+  .accion .n{color:var(--danger);font-family:var(--serif);font-weight:700;flex-shrink:0;}
+
+  .empty-note{color:var(--muted-onbg);font-size:14px;}
+
+  .loading{display:none;align-items:center;gap:10px;color:var(--muted);font-size:14px;margin-top:16px;}
+  .loading.show{display:flex;}
+  .spinner{width:16px;height:16px;border-radius:50%;border:2px solid var(--rule);border-top-color:var(--danger);animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .error{display:none;background:rgba(196,52,42,0.14);border:1px solid rgba(196,52,42,0.4);color:#F3C9C5;padding:12px 14px;border-radius:8px;font-size:14px;margin-top:14px;line-height:1.5;}
+  .error.show{display:block;}
+
+  dialog{
+    border:none;border-radius:14px;padding:0;max-width:440px;width:calc(100% - 40px);
+    background:var(--bg-raised);color:var(--paper);
+  }
+  dialog::backdrop{background:rgba(0,0,0,0.6);}
+  .modal-inner{padding:22px;}
+  .modal-inner h3{margin:0 0 6px;font-family:var(--serif);font-size:19px;}
+  .modal-inner p{color:var(--muted);font-size:13.5px;line-height:1.55;margin:0 0 16px;}
+  .modal-inner a{color:var(--paper);}
+  .modal-inner input{
+    width:100%;background:var(--bg);border:1px solid var(--rule);color:var(--paper);
+    padding:12px;border-radius:8px;font-size:14px;font-family:var(--sans);margin-bottom:12px;
+  }
+  .modal-inner .row{display:flex;gap:10px;}
+  .modal-inner button.save{flex:1;background:var(--danger);color:var(--paper);border:none;padding:12px;border-radius:8px;font-weight:700;cursor:pointer;}
+  .modal-inner button.close{background:none;border:1px solid var(--rule);color:var(--paper);padding:12px 16px;border-radius:8px;cursor:pointer;}
+
+  footer{max-width:640px;margin:34px auto 0;padding:0 18px;color:var(--muted-onbg);font-size:11.5px;line-height:1.6;text-align:center;}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="mark">Letra <em>Chica</em></div>
+        <div class="sub">La burocracia no se va. Que no te agarre desprevenido.</div>
+      </div>
+      <button class="gear" id="openSettings" aria-label="Configuración">⚙</button>
+    </header>
+
+    <div class="doc">
+      <textarea id="input" placeholder="Pegá acá el contrato, la factura, el resultado médico o los términos y condiciones…"></textarea>
+    </div>
+
+    <div class="actions">
+      <button class="go" id="analyze">Traducir esto</button>
+      <button class="clear" id="clear">Borrar</button>
+    </div>
+
+    <div class="loading" id="loading"><div class="spinner"></div><span>Leyendo la letra chica…</span></div>
+    <div class="error" id="error"></div>
+    <p class="hint" id="keyHint">Necesitás una clave gratis de Gemini para que esto funcione. <button id="hintSettings">Configurarla acá →</button></p>
+
+    <section class="verdict" id="verdict">
+      <h2>Veredicto</h2>
+      <div class="block">
+        <h3>Qué dice, en criollo</h3>
+        <p class="resumen" id="resumen"></p>
+      </div>
+      <div class="block">
+        <h3>Qué te puede joder</h3>
+        <div id="riesgos"></div>
+      </div>
+      <div class="block">
+        <h3>Qué preguntar o exigir antes de firmar</h3>
+        <div id="acciones"></div>
+      </div>
+    </section>
+  </div>
+
+  <footer>Letra Chica analiza el texto con IA y puede equivocarse. No reemplaza asesoría legal o médica profesional — para decisiones importantes, consultá a alguien matriculado.</footer>
+
+  <dialog id="settings">
+    <div class="modal-inner">
+      <h3>Tu clave de IA</h3>
+      <p>Es gratis y no pide tarjeta. Sacala en <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>, iniciá sesión con Google, tocá "Create API key" y pegala acá. Se guarda solo en este teléfono.</p>
+      <input id="apiKeyInput" type="password" placeholder="Pegá tu clave (empieza con AIza…)">
+      <div class="row">
+        <button class="save" id="saveKey">Guardar</button>
+        <button class="close" id="closeSettings">Cerrar</button>
+      </div>
+    </div>
+  </dialog>
+
+<script>
+  const MODEL = "gemini-2.0-flash";
+  const $ = (id) => document.getElementById(id);
+  const keyHint = $("keyHint");
+
+  function getKey(){ return localStorage.getItem("lc_key") || ""; }
+  function setKey(k){ localStorage.setItem("lc_key", k); }
+
+  function refreshHint(){
+    keyHint.style.display = getKey() ? "none" : "block";
+  }
+  refreshHint();
+
+  const dlg = $("settings");
+  $("openSettings").onclick = () => { $("apiKeyInput").value = getKey(); dlg.showModal(); };
+  $("hintSettings").onclick = () => { $("apiKeyInput").value = getKey(); dlg.showModal(); };
+  $("closeSettings").onclick = () => dlg.close();
+  $("saveKey").onclick = () => {
+    setKey($("apiKeyInput").value.trim());
+    refreshHint();
+    dlg.close();
+  };
+
+  $("clear").onclick = () => {
+    $("input").value = "";
+    $("verdict").classList.remove("show");
+    $("error").classList.remove("show");
+  };
+
+  const SCHEMA = {
+    type: "object",
+    properties: {
+      resumen: { type: "string" },
+      riesgos: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            texto: { type: "string" },
+            gravedad: { type: "string", enum: ["alta","media","baja"] }
+          },
+          required: ["texto","gravedad"]
+        }
+      },
+      acciones: { type: "array", items: { type: "string" } }
+    },
+    required: ["resumen","riesgos","acciones"]
+  };
+
+  const PROMPT_SYS = `Sos un asistente que traduce documentos burocráticos (contratos, facturas, resultados médicos, términos y condiciones) a lenguaje simple para alguien sin formación legal ni médica.
+Analizá el texto que te pasa el usuario y devolvé SOLO un JSON con este formato:
+- "resumen": 3 a 5 líneas explicando qué es el documento y qué implica firmarlo/aceptarlo, en español claro, sin jerga.
+- "riesgos": lista de cláusulas o datos que perjudican al usuario, penalidades ocultas, resultados anormales, condiciones abusivas o letra chica relevante. Cada uno con "texto" (explicación breve y concreta) y "gravedad" (alta/media/baja).
+- "acciones": lista de preguntas concretas para hacer, o cosas a exigir/verificar antes de firmar o aceptar. Nada genérico tipo "leé bien el contrato" — decisiones y preguntas específicas basadas en lo que dice el texto.
+Si el texto no parece un documento de este tipo, igual analizalo con el mismo criterio general (qué implica, qué riesgo tiene, qué preguntar).`;
+
+  async function analyze(){
+    const text = $("input").value.trim();
+    const key = getKey();
+    $("error").classList.remove("show");
+
+    if(!key){ dlg.showModal(); return; }
+    if(text.length < 20){
+      $("error").textContent = "Pegá el texto completo del documento primero.";
+      $("error").classList.add("show");
+      return;
+    }
+
+    $("analyze").disabled = true;
+    $("loading").classList.add("show");
+    $("verdict").classList.remove("show");
+
+    try{
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${key}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: PROMPT_SYS }] },
+          contents: [{ role: "user", parts: [{ text }] }],
+          generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: SCHEMA,
+            temperature: 0.3
+          }
+        })
+      });
+
+      if(!res.ok){
+        const errBody = await res.text();
+        if(res.status === 400 && errBody.includes("API key")){
+          throw new Error("Esa clave no es válida. Revisala en Configuración.");
+        }
+        if(res.status === 429){
+          throw new Error("Llegaste al límite gratis por ahora. Esperá un minuto y probá de nuevo.");
+        }
+        throw new Error("La IA no pudo responder (código " + res.status + "). Probá de nuevo en un momento.");
+      }
+
+      const data = await res.json();
+      const raw = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if(!raw) throw new Error("No llegó respuesta de la IA. Probá de nuevo.");
+      const parsed = JSON.parse(raw);
+      render(parsed);
+
+    }catch(err){
+      $("error").textContent = err.message || "Algo falló. Probá de nuevo.";
+      $("error").classList.add("show");
+    }finally{
+      $("analyze").disabled = false;
+      $("loading").classList.remove("show");
+    }
+  }
+
+  function render(data){
+    $("resumen").textContent = data.resumen || "";
+
+    const riesgosEl = $("riesgos");
+    riesgosEl.innerHTML = "";
+    if(!data.riesgos || data.riesgos.length === 0){
+      riesgosEl.innerHTML = '<p class="empty-note">No se detectaron riesgos claros en el texto pegado.</p>';
+    }else{
+      data.riesgos
+        .sort((a,b) => ({alta:0,media:1,baja:2}[a.gravedad] - {alta:0,media:1,baja:2}[b.gravedad]))
+        .forEach(r => {
+          const div = document.createElement("div");
+          div.className = "riesgo " + (r.gravedad || "media");
+          div.innerHTML = `<span class="dot"></span><div><p>${escapeHtml(r.texto)}</p><span class="tag">Gravedad ${r.gravedad}</span></div>`;
+          riesgosEl.appendChild(div);
+        });
+    }
+
+    const accionesEl = $("acciones");
+    accionesEl.innerHTML = "";
+    (data.acciones || []).forEach((a, i) => {
+      const div = document.createElement("div");
+      div.className = "accion";
+      div.innerHTML = `<span class="n">${i+1}.</span><span>${escapeHtml(a)}</span>`;
+      accionesEl.appendChild(div);
+    });
+
+    $("verdict").classList.add("show");
+    $("verdict").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function escapeHtml(s){
+    return (s || "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+  }
+
+  $("analyze").onclick = analyze;
+
+  if("serviceWorker" in navigator){
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>
