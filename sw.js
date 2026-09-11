@@ -1,5 +1,5 @@
-const CACHE = "letra-chica-v1";
-const FILES = ["./", "./index.html", "./manifest.json", "./icon.svg"];
+const CACHE = "letra-chica-v2";
+const FILES = ["./manifest.json", "./icon.svg"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)));
@@ -16,8 +16,9 @@ self.addEventListener("activate", (e) => {
 });
 
 self.addEventListener("fetch", (e) => {
-  // La app funciona offline; el análisis en sí necesita internet (llama a la API).
-  e.respondWith(
-    caches.match(e.request).then((cached) => cached || fetch(e.request))
-  );
+  if (e.request.mode === "navigate" || e.request.url.endsWith(".html")) {
+    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+  } else {
+    e.respondWith(caches.match(e.request).then((c) => c || fetch(e.request)));
+  }
 });
